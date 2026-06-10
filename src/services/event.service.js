@@ -4,7 +4,8 @@ const EventModel = require('../models/event');
 const injector = require('../functions/index');
 
 const registerService = async(registerData) => {
-    const { name, mobile_no, email_id, message } = registerData;
+  try{
+     const { name, mobile_no, email_id, message } = registerData;
     var check = 0;
     const members = await EventModel.getMembers();
 
@@ -31,6 +32,10 @@ const registerService = async(registerData) => {
   }
   else
     return {msg:0}
+  }
+   catch(error){
+        return {msg:2 }
+   }
    
 }
 

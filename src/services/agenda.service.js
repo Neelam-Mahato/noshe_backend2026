@@ -2,9 +2,15 @@
 const {agendaModel }= require('../models/index');
 
 const agendaDetailsService = async(registerData) => {
-  const agendaData = await agendaModel.agendaDetails();
+  try{
+    const agendaData = await agendaModel.agendaDetails();
   
-  return  agendaData;
+    return  agendaData;
+  }
+  catch(error){
+    return error;
+  }
+  
 }
 
 
