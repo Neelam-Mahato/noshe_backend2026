@@ -42,6 +42,28 @@
     }
   }
 
+   async function sendOtp(otp,recipientEmail) {
+    try {
+      const base64Data = qrCodeBase64.split("base64,")[1];
+
+      const mailOptions = {
+        from: `"Your App Team" <${process.env.EMAIL_USER}>`,
+        to: recipientEmail,
+        subject: 'Your Registration Security QR Code',
+        html: `
+          <h3>Hello ,</h3>
+          <p>Your otp is ${otp}</p>
+          <p>Keep this code confidential.</p>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+
+      console.log(`QR Code successfully emailed to ${recipientEmail}`);
+    } catch (error) {
+      console.error('Email pipeline failed:', error);
+    }
+  }
   module.exports = {
-    sendQrEmail
+    sendQrEmail,sendOtp
   }

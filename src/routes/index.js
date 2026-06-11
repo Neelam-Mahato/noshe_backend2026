@@ -1,13 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const {auth} = require('../middleware/auth');
-const {eventController,agendaControlller} = require('../controllers/index')
+const auth = require('../middleware/auth');
+const connectivity = require('../middleware/connectivity');
+const {eventController,agendaControlller, attendanceController,loginController,adminController} = require('../controllers/index')
 
 router.post('/register',eventController.registerMember);
 
+router.get('/attendance',attendanceController.attendance);
+
 router.get('/agenda',agendaControlller.agendaDetails);
 
-router.get('/', (req, res) => {
+router.post('/loginOtp',loginController.loginOtp);
+
+router.post('/login',loginController.login);
+
+router.get('/showQr',auth.verifyToken,loginController.memberDetails);
+
+router.post('/logout',loginController.logout);
+
+router.post('/admin/login',adminController.login);
+
+router.get('/admin/eventRecord',auth.verifyToken,adminController.participantDetails);
+
+router.post('/admin/logout',adminController.logout);router.get('/', (req, res) => {
    res.json({ message: 'success' });
 });
 

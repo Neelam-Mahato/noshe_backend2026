@@ -1,7 +1,13 @@
 const eventController = require('./event.controller');
 const agendaControlller = require('./agenda.controller');
+const attendanceController = require('./attendance.controller');
+const loginController = require('./login.controller');
+const adminController = require('./admin.controller');
 
 module.exports = {
   eventController,
-  agendaControlller
+  agendaControlller,
+  attendanceController,
+  loginController,
+  adminController
 };

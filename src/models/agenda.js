@@ -3,7 +3,7 @@
 
   const agendaDetails= async (payload) => {
     try{ 
-    
+    const params = [payload.track,payload.categories,payload.halls];
     const query = `SELECT session_categories,session_timeline,session_tenure,session_halls, session_day,session_track,session_details,
      IF( COUNT(es.event_session_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(JSON_OBJECT(
             'speaker_name', es.speaker_name,
@@ -25,6 +25,6 @@
   }
 
 
+
 module.exports = {
-    agendaDetails
-};
+    agendaDetails};

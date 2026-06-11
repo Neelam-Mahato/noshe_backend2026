@@ -2,6 +2,8 @@
 const QRCode = require('qrcode');
 const EventModel = require('../models/event');
 const injector = require('../functions/index');
+const { randomUUID } = require('crypto');
+const qrToken = randomUUID();
 
 const registerService = async(registerData) => {
   try{
@@ -16,14 +18,10 @@ const registerService = async(registerData) => {
       }    
     }
     if(check == 1){
-        const qrPayload = JSON.stringify({
-        name: name,
-        mobile_no: mobile_no,
-        purpose: "User Verification"
-      });
+        const qrPayload = `Tap the link.\n http://localhost:3001/api/event/attendance?uid=${qrToken}`;
       
       const generatedQr = await QRCode.toDataURL(qrPayload);
-      const newRegister = await EventModel.RegisterMember({name: name, mobile_no: mobile_no, email_id:email_id, message:message,qr_code: generatedQr });
+      const newRegister = await EventModel.RegisterMember({name: name, mobile_no: mobile_no, email_id:email_id, message:message,qr_code: generatedQr ,uid: qrToken});
       if(newRegister){
         
         await injector.sendQrEmail(email_id, name, generatedQr);

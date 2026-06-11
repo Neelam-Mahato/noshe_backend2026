@@ -22,5 +22,4 @@ const server = http.createServer(app);
 
 const userRoutes = require('./src/routes/index');
 app.use('/api/event',userRoutes);
-console.log(process.env.PORT)
 app.listen(port, ()=> console.log(`Server running on the port ${port}`))

@@ -1,0 +1,16 @@
+const { attendanceService } = require('../services');
+
+const attendance = async(req,res) =>{
+    try{
+        const scanData = req.query;
+        const agendaData = await attendanceService.attendanceMember(scanData);
+        return res.status(200).json({ success: true, data: agendaData });
+    }
+    catch (error){
+         return res.status(500).json({ success: false, message: 'Failed to mark attendance' });
+    }
+}
+
+module.exports = {
+    attendance
+}

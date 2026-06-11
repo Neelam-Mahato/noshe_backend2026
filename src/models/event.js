@@ -3,8 +3,8 @@
 
   const RegisterMember= async (payload) => {
     try{ 
-    const queryValues = [payload.name, payload.email_id, payload.mobile_no, payload.message , payload.qr_code, 1];
-    const query = `INSERT INTO registered_members(name, email_id, mobile_no, message , qr_code, register_status) VALUES (?, ?, ? ,? , ?, ?)`;
+    const queryValues = [payload.uid, payload.name, payload.email_id, payload.mobile_no, payload.message , payload.qr_code, 1, 0];
+    const query = `INSERT INTO registered_members(uid, name, email_id, mobile_no, message , qr_code, register_status,attendance) VALUES (?, ?, ?, ? ,? , ?, ?, ?)`;
     const [result] = await db.execute(query, queryValues);
     
     if (result.affectedRows === 0) {
@@ -36,8 +36,122 @@
   }
   }
   
+    const generateAttendance= async (payload) => {
+    try{ 
+          const queryValues = [payload.uid];
+
+          const query = `SELECT * from registered_members where uid=?`;
+          const [result] = await db.execute(query,queryValues);
+         if(result.length == 0){
+          return {success:"false", message:"You are not a registered member"}
+         }
+         else if(result.length == 1){
+          if(result[0].attendance == 1){
+            return {success:"false", message:"Already scanned and attendance marked"}
+          }
+          else if(result[0].attendance == 0){
+              const queryParam = [1, payload.uid];
+              const query = `Update registered_members Set attendance = ? where uid = ?`;
+              await db.execute(query,queryParam);
+              return {success:"true", message:"Attendance marked succesfully"}
+          }
+         }
+     } catch (error) {
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+  }
+
+
+  const checkEmail= async (payload) => {
+    try{ 
+      const param = [payload.email_id]
+    const query = `Select * from registered_members where email_id = ?`;
+    const [result] = await db.execute(query, param);
+    if(result.length > 0){
+      const params = [payload.otp,payload.email_id];
+      const query = `Update registered_members Set loginotp = ? where email_id = ?`;
+      await db.execute(query, params);
+      return {success:true, message:"Otp send successfully.Check your email."}
+    }
+    else if(result.length == 0){
+      return {success:false, message:"Not a registered member"} 
+    }
+     } catch (error) {
+    console.error(' Error:', error);
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+  }
+
+  const verifyOtp= async (payload) => {
+    try{ 
+      const param = [payload.email_id,payload.otp];
+      const query = `Select * from registered_members where email_id = ? and otp = ?`;
+      const [result] = await db.execute(query, param);
+      if(result.length > 0){
+        const param = [0, payload.token, payload.email_id];
+        const query = `Update registered_members set otp = ? ,token = ? where email_id = ? `;
+        await db.execute(query, param);
+      }
+      return result; 
+    
+     } catch (error) {
+    console.error(' Error:', error);
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+  }
+
+  const getQr= async (payload) => {
+    try{ 
+      const param = [payload.uid];
+      const query = `Select * from registered_members where uid = ?`;
+      const [result] = await db.execute(query, param);
+      return result; 
+    
+     } catch (error) {
+    console.error(' Error:', error);
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+  }
+
+  
+  const logout= async (payload) => {
+    try{ 
+      const param = ['', payload.uid];
+      const query = `Update registered_members Set token = ? where uid = ?`;
+      const [result] = await db.execute(query, param);
+      return result.affectedRows == 1 ? {success:true} : {success: false}; 
+    
+     } catch (error) {
+    console.error(' Error:', error);
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+  }
 
 module.exports = {
     RegisterMember,
-    getMembers
+    getMembers,
+    generateAttendance,
+    checkEmail,
+    verifyOtp,
+    getQr
 };
