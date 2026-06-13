@@ -6,29 +6,31 @@
       console.log(payload)
           let params =[];
           let query = `SELECT
-          session_categories,
-          session_timeline,
-          session_tenure,
-          session_halls,
-          session_day,
-          session_track,
-          session_details,
-          IF(
-              COUNT(es.event_session_id) = 0,
-              JSON_ARRAY(),
-              JSON_ARRAYAGG(
-                  JSON_OBJECT(
-                      'speaker_name', es.speaker_name,
-                      'speaker_designation', es.speaker_designation,
-                      'speaker_company', es.speaker_company,
-                      'speaker_image', es.speaker_image
-                  )
-              )
-          ) AS speakers
-          FROM event_session s
-          LEFT JOIN event_session_speakers es
-              ON s.session_id = es.session_id
-          WHERE 1=1`;
+    s.session_id,
+    s.session_categories,
+    s.session_timeline,
+    s.session_tenure,
+    s.session_halls,
+    s.session_day,
+    s.session_track,
+    s.session_details,
+    s.session_date,
+    IF(
+        COUNT(es.event_session_id) = 0,
+        JSON_ARRAY(),
+        JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'speaker_name', es.speaker_name,
+                'speaker_designation', es.speaker_designation,
+                'speaker_company', es.speaker_company,
+                'speaker_image', es.speaker_image
+            )
+        )
+    ) AS speakers
+FROM event_session s
+LEFT JOIN event_session_speakers es
+    ON s.session_id = es.session_id
+WHERE 1=1`;
           if (payload.halls?.length) {
           query += ` AND s.session_halls IN (${payload.halls.map(() => '?').join(',')})`;
           params.push(...payload.halls);
@@ -49,7 +51,11 @@
       }
       query += ` GROUP BY s.session_id` ;
     const [result] = await db.execute(query, params);
-    return result; 
+    const response = {
+    day1: result.filter(item => item.session_day === 'Day 1'),
+    day2: result.filter(item => item.session_day === 'Day 2')
+};
+    return response; 
      } catch (error) {
 
     return {

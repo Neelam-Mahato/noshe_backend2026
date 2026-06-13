@@ -2,7 +2,7 @@ const { attendanceService } = require('../services');
 
 const attendance = async(req,res) =>{
     try{
-        const scanData = req.query;
+        const scanData = req.body;
         const agendaData = await attendanceService.attendanceMember(scanData);
         return res.status(200).json({ success: true, data: agendaData });
     }

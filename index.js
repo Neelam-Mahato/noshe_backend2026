@@ -16,7 +16,10 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
+app.use(
+  '/images',
+  express.static(path.join(__dirname, 'public/images'))
+);
 const port = process.env.PORT || 3001;
 const server = http.createServer(app);
 

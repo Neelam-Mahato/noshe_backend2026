@@ -32,7 +32,7 @@ const registerService = async(registerData) => {
       }
       else
       {
-        const qrPayload = `Tap the link.\n http://localhost:3001/api/event/attendance?uid=${qrToken}`;
+        const qrPayload = qrToken;
         const generatedQr = await QRCode.toDataURL(qrPayload);
         const newRegister = await EventModel.RegisterMember({name: fullName, mobile_no: phone, email_id:email, message:message,qr_code: generatedQr ,uid: qrToken
           , organisation:organisation,designation:designation,delegate_type:delegateType,city:city,dietary:dietary });

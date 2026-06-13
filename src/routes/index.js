@@ -6,7 +6,7 @@ const {eventController,agendaControlller, attendanceController,loginController,a
 
 router.post('/register',eventController.registerMember);
 
-router.get('/attendance',attendanceController.attendance);
+router.post('/attendance',attendanceController.attendance);
 
 router.post('/agenda',agendaControlller.agendaDetails);
 
