@@ -1,18 +1,19 @@
 const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt');
 const {adminModel} = require("../models/index");
 
 const loginVerify = async(loginData) => {
   try{
-        const token = jwt.sign( { memberId: loginData.email_id },process.env.JWT_SECRET,{ expiresIn: '1d' });
+        const token = jwt.sign( { memberId: loginData.username },process.env.JWT_SECRET,{ expiresIn: '1d' });
         const adminResult = await adminModel.adminDetail(); 
-        if(adminResult[0].admin_username == loginData.email_id )
+        if(adminResult[0].admin_username == loginData.username )
         {
             if(await bcrypt.compare(loginData.password, adminResult[0].admin_password)){
-                const verifyData = await adminModel.verifyLogin({password:loginData.password, email_id: loginData.email_id,token:token});
+                const verifyData = await adminModel.verifyLogin({password:loginData.password, username: loginData.username,token:token});
                 if(verifyData.success == true)
-                    return { success: true,message: "You have logged in successfully"};
+                    return { success: true,uid:adminResult[0].admin_uid,token:token,message: "You have logged in successfully"};
                 else
-                    return { success: true,message: "Some error occurred"};
+                    return { success: false,message: "Some error occurred"};
             }
             else
                 return { success: false,message: "You have entered wrong password.Please rectify"};
@@ -27,7 +28,7 @@ const loginVerify = async(loginData) => {
 
 const getParticipantData = async(loginData) => {
   try{
-        const participantData = await adminModel.getParticipants();
+        const participantData = await adminModel.getParticipants(loginData);
         return  participantData;
     }
     catch(error){
@@ -38,7 +39,7 @@ const getParticipantData = async(loginData) => {
 
 const logoutSession = async(logoutData) => {
   try{
-        const verifyData = await adminModel.logout({admin_id: logoutData.id});
+        const verifyData = await adminModel.logout({uid: logoutData.uid});
         return  verifyData;
     }
     catch(error){

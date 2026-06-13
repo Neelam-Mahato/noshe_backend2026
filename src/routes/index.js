@@ -8,13 +8,15 @@ router.post('/register',eventController.registerMember);
 
 router.get('/attendance',attendanceController.attendance);
 
-router.get('/agenda',agendaControlller.agendaDetails);
+router.post('/agenda',agendaControlller.agendaDetails);
+
+router.get('/agendaFilters',agendaControlller.agendaFilters);
 
 router.post('/loginOtp',loginController.loginOtp);
 
 router.post('/login',loginController.login);
 
-router.get('/showQr',auth.verifyToken,loginController.memberDetails);
+router.post('/showQr',auth.verifyToken,loginController.memberDetails);
 
 router.post('/logout',loginController.logout);
 
@@ -22,7 +24,9 @@ router.post('/admin/login',adminController.login);
 
 router.get('/admin/eventRecord',auth.verifyToken,adminController.participantDetails);
 
-router.post('/admin/logout',adminController.logout);router.get('/', (req, res) => {
+router.post('/admin/logout',adminController.logout);
+
+router.get('/', (req, res) => {
    res.json({ message: 'success' });
 });
 

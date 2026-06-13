@@ -3,8 +3,8 @@
 
   const RegisterMember= async (payload) => {
     try{ 
-    const queryValues = [payload.uid, payload.name, payload.email_id, payload.mobile_no, payload.message , payload.qr_code, 1, 0];
-    const query = `INSERT INTO registered_members(uid, name, email_id, mobile_no, message , qr_code, register_status,attendance) VALUES (?, ?, ?, ? ,? , ?, ?, ?)`;
+    const queryValues = [payload.uid, payload.name, payload.email_id, payload.mobile_no,payload.organisation,payload.designation,payload.delegate_type,payload.city,payload.dietary, payload.message , payload.qr_code, 1, 0];
+    const query = `INSERT INTO registered_members(uid, name, email_id, mobile_no, organisation, designation, delegate_type, city, dietary, message , qr_code, register_status,attendance) VALUES (?,?,?,?,?,?, ?, ?, ? ,? , ?, ?, ?)`;
     const [result] = await db.execute(query, queryValues);
     
     if (result.affectedRows === 0) {
@@ -20,11 +20,25 @@
   }
   }
 
+  const checkRegisteredMember= async (payload) => {
+    try{ 
+    const query = `Select * from registered_members`;
+    const [result] = await db.execute(query);
+        return result; 
+     } catch (error) {
+    console.error(' Error:', error);
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+  }
+
   const getMembers= async (payload) => {
     try{ 
     const query = `Select * from members`;
     const [result] = await db.execute(query);
-        console.log(result)
         return result; 
      } catch (error) {
     console.error(' Error:', error);
@@ -93,14 +107,16 @@
   const verifyOtp= async (payload) => {
     try{ 
       const param = [payload.email_id,payload.otp];
-      const query = `Select * from registered_members where email_id = ? and otp = ?`;
+      const query = `Select uid, name, email_id, mobile_no, message, registered_date, token, qr_code from registered_members where email_id = ? and loginotp = ?`;
       const [result] = await db.execute(query, param);
       if(result.length > 0){
         const param = [0, payload.token, payload.email_id];
-        const query = `Update registered_members set otp = ? ,token = ? where email_id = ? `;
+        const query = `Update registered_members set loginotp = ? ,token = ? where email_id = ? `;
         await db.execute(query, param);
+        return result; 
       }
-      return result; 
+      else
+        return {success:false,msg:1}
     
      } catch (error) {
     console.error(' Error:', error);
@@ -114,8 +130,9 @@
 
   const getQr= async (payload) => {
     try{ 
-      const param = [payload.uid];
-      const query = `Select * from registered_members where uid = ?`;
+      console.log(payload)
+      const param = [payload.uid,payload.token];
+      const query = `Select uid, name, mobile_no,qr_code from registered_members where uid = ? and token = ?`;
       const [result] = await db.execute(query, param);
       return result; 
     
@@ -132,7 +149,7 @@
   
   const logout= async (payload) => {
     try{ 
-      const param = ['', payload.uid];
+      const param = [null, payload.uid];
       const query = `Update registered_members Set token = ? where uid = ?`;
       const [result] = await db.execute(query, param);
       return result.affectedRows == 1 ? {success:true} : {success: false}; 
@@ -149,9 +166,11 @@
 
 module.exports = {
     RegisterMember,
+    checkRegisteredMember,
     getMembers,
     generateAttendance,
     checkEmail,
     verifyOtp,
-    getQr
+    getQr,
+    logout
 };

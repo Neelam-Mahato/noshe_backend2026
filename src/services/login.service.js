@@ -7,9 +7,9 @@ const jwt = require('jsonwebtoken');
 const loginMember = async(loginData) => {
   try{
     const otp = crypto.randomInt(100000, 999999);
-    await injector.sendOtp(otp,loginData.email_id);
-    const loginData = await eventModel.checkEmail({otp:otp, email_id: loginData.email_id});
-    return  loginData;
+    await injector.sendOtp(otp,loginData.email);
+    const loginDatas = await eventModel.checkEmail({otp:otp, email_id: loginData.email});
+    return  loginDatas;
   }
   catch(error){
     return error;
@@ -18,8 +18,8 @@ const loginMember = async(loginData) => {
 
 const loginOtpVerify = async(loginData) => {
   try{
-        const token = jwt.sign( { memberId: loginData.email_id },process.env.JWT_SECRET,{ expiresIn: '1d' });
-        const verifyData = await eventModel.verifyOtp({otp:loginData.otp, email_id: loginData.email_id,token:token});
+        const token = jwt.sign( { memberId: loginData.email },process.env.JWT_SECRET,{ expiresIn: '1d' });
+        const verifyData = await eventModel.verifyOtp({otp:loginData.otp, email_id: loginData.email,token:token});
         return  verifyData.length > 0 ? verifyData.map(data => ({...data,token: token})) : verifyData;
     }
   catch(error){
@@ -27,9 +27,9 @@ const loginOtpVerify = async(loginData) => {
   }  
 }
 
-const getRegisterData = async(loginData) => {
+const getRegisterData = async(uid,token) => {
   try{
-    const verifyData = await eventModel.getQr({uid:loginData.uid});
+    const verifyData = await eventModel.getQr({uid:uid,token:token});
     return  verifyData;
   }
   catch(error){

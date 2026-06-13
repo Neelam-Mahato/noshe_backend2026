@@ -18,11 +18,16 @@ const loginOtp = async(req,res) =>{
 const login = async(req,res) =>{
     try{
         const otpVerify = req.body;
-        const verifyResult = await loginService.loginOtpVerify(loginData);
+        const verifyResult = await loginService.loginOtpVerify(otpVerify);
         if(verifyResult.length > 0)
-            return res.status(200).json({ success: true, message: "Logged Successfully", data: verifyResult });
-        else
-            return res.status(500).json({ success: false, message: "Some error occured" });
+            return res.status(200).json({ success: true, message: "Logged In Successfully", data: verifyResult });
+        else  {
+            if(verifyResult?.success == false && verifyResult.msg == 1){
+                return res.status(500).json({ success: false, message: "Wrong OTP entered." });
+            }
+            else
+                return res.status(500).json({ success: false, message: "Some error occured" });
+        }
     }
     catch (error){
          return res.status(500).json({ success: false, message: 'Failed to login' });
@@ -31,9 +36,12 @@ const login = async(req,res) =>{
 
 const memberDetails = async(req,res) =>{
     try{
-        const param = req.body;
-        const result = await loginService.getRegisterData(param);
-        return res.status(200).json({ success: true, data: result}); 
+        const result = await loginService.getRegisterData(req.body.uid,req.headers.authorization);
+        if(result.length > 0)
+            return res.status(200).json({ success: true, data: result}); 
+        else
+            return res.status(500).json({ success: false, message:"Token Expired. Please login again"}); 
+
     }
     catch (error){
          return res.status(500).json({ success: false, message: 'Failed to login' });

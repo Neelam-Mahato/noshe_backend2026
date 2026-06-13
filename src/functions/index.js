@@ -12,7 +12,10 @@
 
  async function sendQrEmail(recipientEmail, username, qrCodeBase64) {
     try {
+      console.log(2,recipientEmail, username, qrCodeBase64)
+
       const base64Data = qrCodeBase64.split("base64,")[1];
+console.log(2,qrCodeBase64,base64Data)
 
       const mailOptions = {
         from: `"Your App Team" <${process.env.EMAIL_USER}>`,
@@ -33,7 +36,7 @@
           }
         ]
       };
-
+console.log(mailOptions)
       await transporter.sendMail(mailOptions);
 
       console.log(`QR Code successfully emailed to ${recipientEmail}`);
@@ -44,8 +47,6 @@
 
    async function sendOtp(otp,recipientEmail) {
     try {
-      const base64Data = qrCodeBase64.split("base64,")[1];
-
       const mailOptions = {
         from: `"Your App Team" <${process.env.EMAIL_USER}>`,
         to: recipientEmail,

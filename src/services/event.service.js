@@ -1,4 +1,3 @@
-
 const QRCode = require('qrcode');
 const EventModel = require('../models/event');
 const injector = require('../functions/index');
@@ -7,32 +6,47 @@ const qrToken = randomUUID();
 
 const registerService = async(registerData) => {
   try{
-     const { name, mobile_no, email_id, message } = registerData;
+    console.log(registerData);
+     const { fullName, phone, email, message, organisation, designation, delegateType, city, dietary } = registerData;
     var check = 0;
     const members = await EventModel.getMembers();
 
     for(var i = 0; i<members.length;i++){
-      if(members[i].email_id == email_id && members[i].mobile_no == mobile_no){
+      if(members[i].email_id == email || members[i].mobile_no == phone){
         check = 1;
         break;
       }    
     }
     if(check == 1){
-        const qrPayload = `Tap the link.\n http://localhost:3001/api/event/attendance?uid=${qrToken}`;
-      
-      const generatedQr = await QRCode.toDataURL(qrPayload);
-      const newRegister = await EventModel.RegisterMember({name: name, mobile_no: mobile_no, email_id:email_id, message:message,qr_code: generatedQr ,uid: qrToken});
-      if(newRegister){
-        
-        await injector.sendQrEmail(email_id, name, generatedQr);
+      check = 0;
+      const checkRegistration = await EventModel.checkRegisteredMember();
+      for(var j = 0; j<checkRegistration.length;j++){
+        if(checkRegistration[j].email_id == email && checkRegistration[j].mobile_no == phone){
+          check = 1;
+          break;
+        }
+      }    
+      if(check == 1)
+      {
+        return {msg : 4}
       }
-      return { id: newRegister, name, mobile_no, email_id, qrCode: generatedQr ,msg:1};
+      else
+      {
+        const qrPayload = `Tap the link.\n http://localhost:3001/api/event/attendance?uid=${qrToken}`;
+        const generatedQr = await QRCode.toDataURL(qrPayload);
+        const newRegister = await EventModel.RegisterMember({name: fullName, mobile_no: phone, email_id:email, message:message,qr_code: generatedQr ,uid: qrToken
+          , organisation:organisation,designation:designation,delegate_type:delegateType,city:city,dietary:dietary });
+        if(newRegister){
+          await injector.sendQrEmail(email, fullName, generatedQr); 
+        }
+        return { fullName, phone, email, qrCode: generatedQr ,msg:1};
+      } 
   }
   else
-    return {msg:0}
+    return {msg : 0}
   }
    catch(error){
-        return {msg:2 }
+        return {msg : 2 }
    }
    
 }

@@ -11,6 +11,17 @@ const agendaDetailsService = async(filterData) => {
   }  
 }
 
+const agendaFiltersService = async(filterData) => {
+  try{
+    const agendaData = await agendaModel.agendaFilters({search:filterData.search});
+    return  agendaData;
+  } 
+  catch(error){
+    return error;
+  }  
+}
+
 module.exports = {
-    agendaDetailsService
+    agendaDetailsService,
+    agendaFiltersService
 }

@@ -3,19 +3,54 @@
 
   const agendaDetails= async (payload) => {
     try{ 
-    const params = [payload.track,payload.categories,payload.halls];
-    const query = `SELECT session_categories,session_timeline,session_tenure,session_halls, session_day,session_track,session_details,
-     IF( COUNT(es.event_session_id) = 0, JSON_ARRAY(), JSON_ARRAYAGG(JSON_OBJECT(
-            'speaker_name', es.speaker_name,
-            'speaker_designation', es.speaker_designation,
-            'speaker_company', es.speaker_company,
-            'speaker_image', es.speaker_image ))) AS speakers
-    FROM event_session s LEFT JOIN event_session_speakers es ON s.session_id = es.session_id GROUP BY s.session_id;`;
-    const [result] = await db.execute(query);
-    
+      console.log(payload)
+          let params =[];
+          let query = `SELECT
+          session_categories,
+          session_timeline,
+          session_tenure,
+          session_halls,
+          session_day,
+          session_track,
+          session_details,
+          IF(
+              COUNT(es.event_session_id) = 0,
+              JSON_ARRAY(),
+              JSON_ARRAYAGG(
+                  JSON_OBJECT(
+                      'speaker_name', es.speaker_name,
+                      'speaker_designation', es.speaker_designation,
+                      'speaker_company', es.speaker_company,
+                      'speaker_image', es.speaker_image
+                  )
+              )
+          ) AS speakers
+          FROM event_session s
+          LEFT JOIN event_session_speakers es
+              ON s.session_id = es.session_id
+          WHERE 1=1`;
+          if (payload.halls?.length) {
+          query += ` AND s.session_halls IN (${payload.halls.map(() => '?').join(',')})`;
+          params.push(...payload.halls);
+      }
+      
+      if (payload.track?.length) {
+          query += ` AND s.session_track IN (${payload.track.map(() => '?').join(',')})`;
+          params.push(...payload.track);
+      }
+
+      if (payload.categories?.length) {
+          query += ` AND s.session_categories IN (${payload.categories.map(() => '?').join(',')})`;
+          params.push(...payload.categories);
+      }
+       if (payload.speakers?.length) {
+          query += ` AND es.speaker_name IN (${payload.speakers.map(() => '?').join(',')})`;
+          params.push(...payload.speakers);
+      }
+      query += ` GROUP BY s.session_id` ;
+    const [result] = await db.execute(query, params);
     return result; 
      } catch (error) {
-    console.error('RegisterMember Error:', error);
 
     return {
       success: false,
@@ -24,7 +59,50 @@
   }
   }
 
+const agendaFilters= async (payload) => {
+    try{ 
+        console.log(payload)
+        const searchTerm = payload.search?.trim();
 
+        let query = `SELECT distinct
+        (Select JSON_ARRAYAGG(JSON_OBJECT('session_track',session_track)) from (Select distinct session_track from event_session WHERE session_track IS NOT NULL AND TRIM(session_track) != '' ) a ) as tracks,
+        (Select JSON_ARRAYAGG(JSON_OBJECT('session_categories',session_categories)) from (Select distinct session_categories from event_session WHERE session_categories IS NOT NULL AND TRIM(session_categories) != '' ) d) as categories,
+        (Select JSON_ARRAYAGG(JSON_OBJECT('session_halls',session_halls)) from (Select distinct session_halls from event_session WHERE session_halls IS NOT NULL AND TRIM(session_halls) != '' ) p ) as halls,
+        (Select JSON_ARRAYAGG(JSON_OBJECT('speaker_name', speaker_name)) from (Select distinct speaker_name from event_session_speakers WHERE speaker_name IS NOT NULL AND TRIM(speaker_name) != '' ) s ) as speakers
+        FROM event_session`;
+        const [result] = await db.execute(query);
+        const raw = result[0];
+        const parse = (val) => typeof val === 'string' ? JSON.parse(val) : (val || []);
+
+        const data = {
+          tracks:     { key: 'session_track',      items: parse(raw.tracks) },
+          categories: { key: 'session_categories', items: parse(raw.categories) },
+          halls:      { key: 'session_halls',      items: parse(raw.halls) },
+          speakers:   { key: 'speaker_name',       items: parse(raw.speakers) },
+        };
+
+        if (!searchTerm?.trim()) return Object.fromEntries(
+          Object.entries(data).map(([group, { items }]) => [group, items])
+        );
+
+        const keyword = searchTerm.toLowerCase().trim();
+
+        const result1 = {};
+        for (const [group, { key, items }] of Object.entries(data)) {
+          const filtered = items.filter(item => item[key] != null && String(item[key]).toLowerCase().includes(keyword));
+          if (filtered.length) result1[group] = filtered;
+        }
+
+        return result1;
+     } catch (error) {
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+  }
 
 module.exports = {
-    agendaDetails};
+    agendaDetails,
+    agendaFilters};
